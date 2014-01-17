@@ -1,0 +1,28 @@
+
+
+
+class ISock
+{
+	bool SetAddr(string addr) = 0;
+	bool SetPort(string port) = 0;
+	bool SetFamily(int family) = 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
