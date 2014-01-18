@@ -1,7 +1,12 @@
-
+CC=g++
+CFALGS=-Wall -g
+SRC=	main.cpp \
+	tcpserver.cpp \
+	tcpclient.cpp
+MAIN=main
 all:
 	echo "make test"
-	g++ -Wall main.cpp -o main
+	$(CC) $(CFLAGS) ${SRC} -o $(MAIN)
 clean:
-	rm main -rf
+	rm $(MAIN) -rf
 	

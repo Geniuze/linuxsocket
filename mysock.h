@@ -7,54 +7,64 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
+#include <string.h>
 
 using namespace std;
 
 #define DEFAULT_PORT 8000
 
+#define bzero(p, len) \
+    memset(p, 0, len)
+
 class ISock
 {
 public:
-    ISock():_family(AF_INET)
+    ISock():_family(AF_INET), _type(SOCK_STREAM)
     {
 
     }
-    ISock(int family):_family(family)
+    ISock(int family, int type) : _family(family), _type(type)
     {
 
     }
+
     void SetFamily(int family)
     {
         _family = family;
+    }
+    void SetType(int type)
+    {
+        _type = type;
     }
     int GetFamily()
     {
         return _family;
     }
+    int GetType()
+    {
+        return _type;
+    }
 
     virtual ~ISock(){}
 private:
     int _family;
+    int _type;
 };
 
 class CSockIn : public ISock
 {
 public:
-    CSockIn() : ISock(),_type(SOCK_STREAM),_port(DEFAULT_PORT),_addr("0.0.0.0")
+    CSockIn() : ISock(),_port(DEFAULT_PORT),_addr("0.0.0.0")
     {
 
     }
-    CSockIn(string addr, unsigned short port) : ISock(),_type(SOCK_STREAM),_port(port),_addr(addr)
+    CSockIn(string addr, unsigned short port) : ISock(),_port(port),_addr(addr)
     {
 
     }
-    CSockIn(int family, int type, string addr, unsigned short port) : ISock(family),_type(type),_port(port),_addr(addr)
+    CSockIn(int family, int type, string addr, unsigned short port) : ISock(family, type),_port(port),_addr(addr)
     {
 
-    }
-    void SetType(int type)
-    {
-        _type = type;
     }
     void SetPort(unsigned short port)
     {
@@ -73,10 +83,6 @@ public:
         _sock = sock;
     }
 
-    int GetType()
-    {
-        return _type;
-    }
     unsigned short GetPort()
     {
         return _port;
@@ -96,7 +102,7 @@ public:
     }
     int SocketCreate()
     {
-        _sock = socket(ISock::GetFamily(), _type, 0);
+        _sock = socket(ISock::GetFamily(), ISock::GetType(), 0);
         if (-1 == _sock )
         {
             perror("socket");
@@ -142,12 +148,41 @@ public:
             perror("accept");
             return -1;
         }
-        client.SetType(_type);
+        client.SetType(ISock::GetType());
         client.SetFamily(sin_client.sin_family);
         client.SetPort(ntohs(sin_client.sin_port));
         client.SetAddr(inet_ntop(sin_client.sin_family, &sin_client.sin_addr.s_addr, dstaddr, sizeof(dstaddr)));
         client.SetSock(client_sock);
         return client_sock;
+    }
+    int Connect()
+    {
+        //client
+        struct sockaddr_in server;
+        bzero(&server, sizeof(server));
+        server.sin_family = ISock::GetFamily();
+        server.sin_port = htons(_port);
+        server.sin_addr.s_addr = inet_addr(_addr.c_str());
+        if (-1 == connect(_sock, (struct sockaddr *)&server, sizeof(server)))
+        {
+            perror("connect");
+            return -1;
+        }
+        return 0;
+    }
+    int Recv(char *buf, size_t len)
+    {
+        return recv(_sock, buf, len, 0);
+    }
+    int Send(const char *buf, size_t len)
+    {
+        return send(_sock, buf, len, 0);
+    }
+    int Close()
+    {
+        shutdown(_sock, SHUT_RDWR);
+        close(_sock);
+        return 0;
     }
     int SetNonBlock()
     {
@@ -167,7 +202,6 @@ public:
     }
 
 private:
-    int _type;
     unsigned short _port;
     string _addr;
     int _sock;
@@ -215,6 +249,71 @@ public:
 
 
 
+
+};
+
+class CSockTcpClient : public CSockIn
+{
+public:
+    CSockTcpClient() : CSockIn()
+    {
+
+    }
+    CSockTcpClient(string addr, unsigned short port) : CSockIn(addr, port)
+    {
+
+    }
+    CSockTcpClient(int family, int type, string addr, unsigned short port) : CSockIn(family, type, addr, port)
+    {
+
+    }
+    virtual ~CSockTcpClient()
+    {
+
+    }
+    int Connect()
+    {
+        if (-1 == SocketCreate())
+            return -1;
+        if (-1 == CSockIn::Connect())
+            return -1;
+        return 0;
+    }
+    int Connect(string addr, unsigned short port)
+    {
+        SetAddr(addr);
+        SetPort(port);
+        return this->Connect();
+    }
+
+};
+
+class CSockUn : public ISock
+{
+public:
+    CSockUn() : ISock(), _path("/tmp/server.sock")
+    {
+
+    }
+    CSockUn(string path) : ISock(), _path(path)
+    {
+
+    }
+    CSockUn(int family, int type, string path) : CSock(family, type), _path(path)
+    {
+
+    }
+    virtual ~CSockUn()
+    {
+
+    }
+
+    void SetPath(string path)
+    {
+        _path = path;
+    }
+private:
+    string _path;
 };
 
 
