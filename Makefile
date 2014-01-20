@@ -2,7 +2,9 @@ CC=g++
 CFALGS=-Wall -g
 SRC=	main.cpp \
 	tcpserver.cpp \
-	tcpclient.cpp
+	tcpclient.cpp \
+	localtcpserver.cpp \
+	localtcpclient.cpp
 MAIN=main
 all:
 	echo "make test"

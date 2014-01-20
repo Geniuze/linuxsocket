@@ -8,15 +8,15 @@ using namespace std;
 
 #define MAX_EVENTS 10
 
-int f_tcpserver()
+int f_localtcpserver()
 {
-    CSockTcpServer tcpserver;
+    CSockLocalTcpServer localtcpserver;
     int epollfd, ndfs;
     struct epoll_event ev, events[MAX_EVENTS];
     list<ISock*> clients;
 
     signal(SIGPIPE, SIG_IGN);
-    if (-1 == tcpserver.Listen())
+    if (-1 == localtcpserver.Listen())
         return -1;
 
     epollfd = epoll_create(MAX_EVENTS);
@@ -26,7 +26,7 @@ int f_tcpserver()
         return -1;
     }
     ev.events = EPOLLIN;
-    ev.data.fd = tcpserver.GetSock();
+    ev.data.fd = localtcpserver.GetSock();
 
     if (-1 == epoll_ctl(epollfd, EPOLL_CTL_ADD, ev.data.fd, &ev))
     {
@@ -44,10 +44,10 @@ int f_tcpserver()
 
         for (int n = 0; n < ndfs; ++n)
         {
-            if (events[n].data.fd == tcpserver.GetSock())
+            if (events[n].data.fd == localtcpserver.GetSock())
             {
-                ISock *client = new CSockIn;
-                if (-1 == tcpserver.Accept(client))
+                ISock *client = new CSockUn;
+                if (-1 == localtcpserver.Accept(client))
                 {
                     return -1;
                 }
@@ -77,7 +77,7 @@ int f_tcpserver()
                 {
                     char buf[1024] = {0};
                     int len = recv((*it)->GetSock(), buf, sizeof(buf), 0);
-					//cout << "test code ...[len=" << len << "]" << endl;
+                    //cout << "test code ...[len=" << len << "]" << endl;
                     if (0 >= len) // always have event and "recv" return 0 when remote close tcp connect
                     {
                         ev.data.fd = (*it)->GetSock();
@@ -102,3 +102,4 @@ int f_tcpserver()
     }
     return 0;
 }
+

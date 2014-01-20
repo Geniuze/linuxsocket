@@ -6,6 +6,8 @@
 using namespace std;
 int f_tcpserver();
 int f_tcpclient();
+int f_localtcpserver();
+int f_localtcpclient();
 const char *short_options = "hc:";
 struct option long_options[] =
 {
@@ -22,6 +24,8 @@ void help()
 }
 int main(int argc, char **argv)
 {
+    if (1 == argc)
+        help();
     int c;
     while(-1 != (c = getopt_long(argc, argv, short_options, long_options, NULL)))
     {
@@ -35,6 +39,14 @@ int main(int argc, char **argv)
             if (!strcasecmp(optarg, "tcpclient") || !strcasecmp(optarg, "tc"))
             {
                 f_tcpclient();
+            }
+            if (!strcasecmp(optarg, "localtcpserver") || !strcasecmp(optarg, "lts"))
+            {
+                f_localtcpserver();
+            }
+            if (!strcasecmp(optarg, "localtcpclient") || !strcasecmp(optarg, "ltc"))
+            {
+                f_localtcpclient();
             }
             else
             {
