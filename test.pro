@@ -7,7 +7,9 @@ SOURCES += main.cpp \
     tcpclient.cpp \
     tcpserver.cpp \
     localtcpserver.cpp \
-    localtcpclient.cpp
+    localtcpclient.cpp \
+    udpserver.cpp \
+    udpclient.cpp
 
 HEADERS += \
     mysock.h

@@ -171,6 +171,41 @@ public:
     {
         return send(_sock, buf, len, 0);
     }
+    int RecvFrom(int sock, void *buf, size_t len, int flag, ISock *client)
+    {
+        struct sockaddr_in c;
+        size_t sock_len = sizeof(c);
+        char dstaddr[100] = {0};
+        bzero(&c, sizeof(c));
+
+        int ret = ::recvfrom(sock, buf, len, flag, (struct sockaddr*)&c, &sock_len);
+        if (0 > ret)
+        {
+            //perror("recvfrom");
+            return ret;
+        }
+        client->SetType(ISock::GetType());
+        client->SetFamily(c.sin_family);
+        client->SetPort(ntohs(c.sin_port));
+        client->SetAddr(inet_ntop(c.sin_family, &c.sin_addr.s_addr, dstaddr, sizeof(dstaddr)));
+        return ret;
+    }
+    int SendTo(int sock, void *buf, size_t len, int flag, ISock *server)
+    {
+        struct sockaddr_in s;
+        bzero(&s, sizeof(s));
+        s.sin_family = server->GetFamily();
+        s.sin_port = htons(server->GetPort());
+        s.sin_addr.s_addr = inet_addr(server->GetAddr().c_str());
+
+        int ret = ::sendto(sock, buf, len, flag, (struct sockaddr*)&s, sizeof(s));
+        if (0 > ret)
+        {
+            //perror("sendto");
+            return ret;
+        }
+        return ret;
+    }
     int Close()
     {
         shutdown(_sock, SHUT_RDWR);
@@ -359,6 +394,64 @@ public:
 
 };
 
+class CSockUdpServer : public CSockIn
+{
+public:
+    CSockUdpServer() : CSockIn(AF_INET, SOCK_DGRAM, "0.0.0.0", DEFAULT_PORT)
+    {
+
+    }
+    CSockUdpServer(string addr, unsigned short port) : CSockIn(AF_INET, SOCK_DGRAM, addr, port)
+    {
+
+    }
+    CSockUdpServer(int family, int type, string addr, unsigned short port) : CSockIn(family, type, addr, port)
+    {
+
+    }
+
+    virtual ~CSockUdpServer()
+    {
+
+    }
+    int Listen()
+    {
+        if (-1 == SockCreate())
+        {
+            return -1;
+        }
+        if (-1 == SetNonBlock())
+        {
+            return -1;
+        }
+        if (-1 == BindAddr())
+        {
+            return -1;
+        }
+        return 0;
+    }
+};
+
+class CSockUdpClient : public CSockIn
+{
+public:
+    CSockUdpClient() : CSockIn(AF_INET, SOCK_DGRAM, "0.0.0.0", DEFAULT_PORT)
+    {
+
+    }
+    CSockUdpClient(string addr, short port) : CSockIn(AF_INET, SOCK_DGRAM, addr, port)
+    {
+
+    }
+    CSockUdpClient(int family, int type, string addr, unsigned short port) : CSockIn(family, type, addr, port)
+    {
+
+    }
+    ~CSockUdpClient(){}
+
+
+};
+
 class CSockUn : public ISock
 {
 public:
@@ -519,7 +612,6 @@ public:
         return this->Connect();
     }
 };
-
 
 
 

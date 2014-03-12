@@ -8,6 +8,8 @@ int f_tcpserver();
 int f_tcpclient();
 int f_localtcpserver();
 int f_localtcpclient();
+int f_udpserver();
+int f_udpclient();
 const char *short_options = "hc:";
 struct option long_options[] =
 {
@@ -19,7 +21,7 @@ struct option long_options[] =
 void help()
 {
     cout << "help:" << endl;
-    cout << "-c or --commond tcpserver/tcpclient start a tcpserver" << endl;
+    cout << "-c or --commond tcpserver/tcpclient/localtcpserver/localtcpclient/udpclient/udpserver start a tcpserver" << endl;
     cout << "-h or --help show help" << endl;
 }
 int main(int argc, char **argv)
@@ -36,17 +38,25 @@ int main(int argc, char **argv)
             {
                 f_tcpserver();
             }
-            if (!strcasecmp(optarg, "tcpclient") || !strcasecmp(optarg, "tc"))
+            else if (!strcasecmp(optarg, "tcpclient") || !strcasecmp(optarg, "tc"))
             {
                 f_tcpclient();
             }
-            if (!strcasecmp(optarg, "localtcpserver") || !strcasecmp(optarg, "lts"))
+            else if (!strcasecmp(optarg, "localtcpserver") || !strcasecmp(optarg, "lts"))
             {
                 f_localtcpserver();
             }
-            if (!strcasecmp(optarg, "localtcpclient") || !strcasecmp(optarg, "ltc"))
+            else if (!strcasecmp(optarg, "localtcpclient") || !strcasecmp(optarg, "ltc"))
             {
                 f_localtcpclient();
+            }
+            else if (!strcasecmp(optarg, "udpclient") || !strcasecmp(optarg, "uc"))
+            {
+                f_udpclient();
+            }
+            else if (!strcasecmp(optarg, "udpserver") || !strcasecmp(optarg, "us"))
+            {
+                f_udpserver();
             }
             else
             {

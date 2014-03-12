@@ -4,7 +4,9 @@ SRC=	main.cpp \
 	tcpserver.cpp \
 	tcpclient.cpp \
 	localtcpserver.cpp \
-	localtcpclient.cpp
+	localtcpclient.cpp \
+	udpserver.cpp \
+	udpclient.cpp 
 MAIN=main
 all:
 	echo "make test"

@@ -1,5 +1,7 @@
 #include "mysock.h"
 
+#include "malloc.h"
+
 int f_udpserver()
 {
     CSockUdpServer udpserver;
@@ -8,9 +10,19 @@ int f_udpserver()
 
     while(true)
     {
-        char buf[1024] = {0};
+        int BufLen = 8;
+        char *buf = (char *)malloc(BufLen);
+        bzero(buf, BufLen);
         int len;
-        len = udpserver.RecvFrom(udpserver.GetSock(), buf, sizeof(buf), 0, &udpclient);
+
+        while((len = udpserver.RecvFrom(udpserver.GetSock(), buf, BufLen, MSG_PEEK, &udpclient)) == BufLen)
+        {
+            buf = (char *)realloc(buf, BufLen*2);
+            bzero(buf, BufLen);
+            BufLen *= 2;
+        }
+        bzero(buf, BufLen);
+        len = udpserver.RecvFrom(udpserver.GetSock(), buf, BufLen, 0, &udpclient);
         if (len > 0)
         {
             cout << "recvfrom addr : " << udpclient.GetAddr() << endl;
@@ -19,6 +31,7 @@ int f_udpserver()
             cout << "recvfrom data : " << buf << endl;
             cout << endl;
         }
+        free(buf);
         usleep(200);
 
     }

@@ -3,6 +3,7 @@
 #include <sys/epoll.h>
 #include <list>
 #include <sys/signal.h>
+#include <malloc.h>
 
 using namespace std;
 
@@ -75,8 +76,19 @@ int f_tcpserver()
                 }
                 if (it != clients.end())
                 {
-                    char buf[1024] = {0};
-                    int len = recv((*it)->GetSock(), buf, sizeof(buf), 0);
+                    int BufLen = 8;
+                    char *buf = (char *)malloc(BufLen);
+                    bzero(buf, BufLen);
+                    int len;
+
+                    while((len = recv((*it)->GetSock(), buf, BufLen, MSG_PEEK)) == BufLen)
+                    {
+                        buf = (char *)realloc(buf, BufLen*2);
+                        bzero(buf, BufLen);
+                        BufLen *= 2;
+                    }
+                    bzero(buf, BufLen);
+                    len = recv((*it)->GetSock(), buf, BufLen, 0);
 					//cout << "test code ...[len=" << len << "]" << endl;
                     if (0 >= len) // always have event and "recv" return 0 when remote close tcp connect
                     {
@@ -91,11 +103,13 @@ int f_tcpserver()
                         close((*it)->GetSock());
                         delete *it;
                         clients.erase(it);
+                        free(buf);
                         continue;
                     }
                     cout << "\nrecv from : " << (*it)->GetAddr() << ":" << (*it)->GetPort() << endl;
                     cout << "data length : " << len << endl;
                     cout << "data : " << buf << endl;
+                    free(buf);
                 }
             }
         }
