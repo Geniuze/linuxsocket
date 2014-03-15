@@ -21,7 +21,7 @@ struct option long_options[] =
 void help()
 {
     cout << "help:" << endl;
-    cout << "-c or --commond tcpserver/tcpclient/localtcpserver/localtcpclient/udpclient/udpserver start a tcpserver" << endl;
+    cout << "-c or --commond tcpserver/tcpclient/localtcpserver/localtcpclient/udpclient/udpserver start " << endl;
     cout << "-h or --help show help" << endl;
 }
 int main(int argc, char **argv)
